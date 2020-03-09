@@ -33,6 +33,4 @@ public class vc {
 	  currentToken = scanner.getToken();
         while (currentToken.kind != Token.EOF);
     }
-    
-
 }

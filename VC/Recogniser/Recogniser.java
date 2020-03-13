@@ -130,11 +130,15 @@ public class Recogniser {
     parseIdent();
  //System.out.println("3");
     // have to parse through para-list
-    parseParraList();
+    if(currentToken.kind == Token.LPAREN){
+        parseParraList();
+        parseCompoundStmt();
+    }   else {
+        parseVarDeclaration();
+    }
 
     // have to parse through parseCompoundStmt if applicable.
     //System.out.println("4");
-    parseCompoundStmt();
     
     //System.out.println("5");
     /*
@@ -145,6 +149,16 @@ public class Recogniser {
     parseCompoundStmt();
     */
   }
+    
+    public void parseVarDeclaration() throws SyntaxError {
+        parseType();
+        parseDeclarationList();
+        match(Token.SEMICOLON);
+    }
+    
+    public void parseDeclarationList() throws SyntaxError {
+        
+    }
 
     public void parseParraList() throws SyntaxError {
         match(Token.LPAREN);
@@ -216,6 +230,9 @@ public class Recogniser {
         if(currentToken.kind == Token.SEMICOLON){
             match(Token.SEMICOLON);
         }
+        if(isStmtDeclaration()) {
+            parseStmt();
+        }
     }
     
     match(Token.RCURLY);
@@ -231,17 +248,63 @@ public class Recogniser {
   void parseStmt() throws SyntaxError {
 
     switch (currentToken.kind) {
-    
+
+    case Token.LCURLY:
+        parseCompoundStmt();
+        break;
+    case Token.IF:
+        match(Token.IF);
+        parseIfStmt();
+        break;
+    case Token.FOR:
+        parseForStmt();
+        break;
+    case Token.WHILE:
+        parseWhileStmt();
+        break;
+    case Token.BREAK:
+        parseBreakStmt();
+        break;
+    case Token.RETURN:
+        parseReturnStmt();
+        break;
     case Token.CONTINUE:
         parseContinueStmt();
         break;
-
+    
     default:
         //System.out.println("Im here");
         parseExprStmt();
         break;
 
     }
+  }
+
+  void parseIfStmt() throws SyntaxError {
+    match(Token.LPAREN);
+    parseExpr();
+    match(Token.RPAREN);
+    parseStmt();
+    if(currentToken.kind == Token.ELSE) {
+        match(Token.ELSE);
+        parseStmt();
+    }
+  }
+
+  void parseForStmt() throws SyntaxError {
+
+  }
+  
+  void parseWhileStmt() throws SyntaxError {
+
+  }
+
+  void parseBreakStmt() throws SyntaxError {
+
+  }
+
+  void parseReturnStmt() throws SyntaxError {
+
   }
 
   void parseContinueStmt() throws SyntaxError {
@@ -416,8 +479,12 @@ public class Recogniser {
   // Call these methods rather than accept().  In Assignment 3,
   // literal AST nodes will be constructed inside these methods.
 
+  //might have to change the string one cause i just copied the previous ones
   void parseStringLiteral() throws SyntaxError {
-        
+    if(currentToken.kind == Token.STRINGLITERAL) {
+        currentToken = scanner.getToken();
+    } else
+        syntacticError("String literal expected here", "");
   }
   
   void parseIntLiteral() throws SyntaxError {

@@ -1,4 +1,4 @@
-void A() { 
+void A() {
   a = b = c = 10;
   a;
 }

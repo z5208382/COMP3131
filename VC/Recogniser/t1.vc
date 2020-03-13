@@ -1,1 +1,5 @@
-void A(){ }
+void A(int d, string y, int fuck) {
+
+    a = b = c = d = 5;
+
+}

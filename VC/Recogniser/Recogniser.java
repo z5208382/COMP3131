@@ -1,13 +1,13 @@
 /***
  * *
- * * Recogniser.java            
+ * * Recogniser.java
  * *
  ***/
 
 /* At this stage, this parser accepts a subset of VC defined	by
- * the following grammar. 
+ * the following grammar.
  *
- * You need to modify the supplied parsing methods (if necessary) and 
+ * You need to modify the supplied parsing methods (if necessary) and
  * add the missing ones to obtain a parser for the VC language.
  *
  * (27---Feb---2019)
@@ -20,26 +20,26 @@ func-decl     -> void identifier "(" ")" compound-stmt
 
 identifier    -> ID
 
-// statements 
-compound-stmt -> "{" stmt* "}" 
+// statements
+compound-stmt -> "{" stmt* "}"
 stmt          -> continue-stmt
     	      |  expr-stmt
 continue-stmt -> continue ";"
 expr-stmt     -> expr? ";"
 
-// expressions 
+// expressions
 expr                -> assignment-expr
 assignment-expr     -> additive-expr
 additive-expr       -> multiplicative-expr
                     |  additive-expr "+" multiplicative-expr
 multiplicative-expr -> unary-expr
-	            |  multiplicative-expr "*" unary-expr
+	                |  multiplicative-expr "*" unary-expr
 unary-expr          -> "-" unary-expr
-		    |  primary-expr
+		            |  primary-expr
 
 primary-expr        -> identifier
- 		    |  INTLITERAL
-		    | "(" expr ")"
+ 		            |  INTLITERAL
+		            | "(" expr ")"
 */
 
 package VC.Recogniser;
@@ -54,14 +54,33 @@ public class Recogniser {
   private Scanner scanner;
   private ErrorReporter errorReporter;
   private Token currentToken;
+  private String[] typeDeclaration = {"void", "boolean", "int", "float", "id"};
+  private String[] stmt = {"if", "for", "while", "break", "continue", "return"};
 
   public Recogniser (Scanner lexer, ErrorReporter reporter) {
     scanner = lexer;
     errorReporter = reporter;
-
     currentToken = scanner.getToken();
   }
 
+
+  boolean isTypeDeclaration() {
+      for(int i = 0; i < typeDeclaration.length; i++) {
+          if(typeDeclaration[i] == currentToken.spell(currentToken.kind)){
+              return true;
+          }
+      }
+      return false;
+  }
+  
+  boolean isStmtDeclaration() {
+      for(int i = 0; i < stmt.length; i++) {
+          if(stmt[i] == currentToken.spell(currentToken.kind)) {
+              return true;
+          }
+      }
+      return false;
+  }
 // match checks to see f the current token matches tokenExpected.
 // If so, fetches the next token.
 // If not, reports a syntactic error.
@@ -91,7 +110,9 @@ public class Recogniser {
   public void parseProgram() {
 
     try {
-      parseFuncDecl();
+      while(currentToken.kind != Token.EOF) {
+          parseFuncDecl();
+      }
       if (currentToken.kind != Token.EOF) {
         syntacticError("\"%\" wrong result type for a function", currentToken.spelling);
       }
@@ -101,49 +122,130 @@ public class Recogniser {
 
 // ========================== DECLARATIONS ========================
 
-  void parseFuncDecl() throws SyntaxError {
+    void parseFuncDecl() throws SyntaxError {
+     
+ //System.out.println("1");
+    parseType();
+ //System.out.println("2");
+    parseIdent();
+ //System.out.println("3");
+    // have to parse through para-list
+    parseParraList();
 
+    // have to parse through parseCompoundStmt if applicable.
+    //System.out.println("4");
+    parseCompoundStmt();
+    
+    //System.out.println("5");
+    /*
     match(Token.VOID);
     parseIdent();
     match(Token.LPAREN);
     match(Token.RPAREN);
     parseCompoundStmt();
+    */
   }
 
+    public void parseParraList() throws SyntaxError {
+        match(Token.LPAREN);
+        while(currentToken.kind != Token.RPAREN) {
+            parseType();
+            parseIdent();
+            if(currentToken.kind == Token.COMMA){
+                match(Token.COMMA);
+            }
+        }
+        match(Token.RPAREN);
+    }
+
+    public void parseFunctionCall() throws SyntaxError {
+        match(Token.LPAREN);
+        while(currentToken.kind != Token.RPAREN) {
+            parseType();
+            if(currentToken.kind == Token.COMMA){
+                match(Token.COMMA);
+            }
+        }
+        match(Token.RPAREN);
+    }
+
+    public void parseType() throws SyntaxError {
+        switch(currentToken.kind) {
+            case Token.VOID:
+                match(Token.VOID);
+                break;
+            case Token.BOOLEAN:
+                match(Token.BOOLEAN);
+                break;
+            case Token.INT:
+                match(Token.INT);
+                break;
+            case Token.FLOAT:
+                match(Token.FLOAT);
+                break;
+            case Token.ID:
+                match(Token.ID);
+                break;
+            case Token.INTLITERAL:
+                parseIntLiteral();
+                break;
+            case Token.FLOATLITERAL:
+                parseFloatLiteral();
+                break;
+            case Token.BOOLEANLITERAL:
+                parseBooleanLiteral();
+                break;
+            case Token.STRINGLITERAL:
+                parseStringLiteral();
+                break;
+            default:
+                syntacticError("ERROR", currentToken.spelling);
+      }
+  }
 // ======================= STATEMENTS ==============================
 
 
   void parseCompoundStmt() throws SyntaxError {
-
+    
+     //System.out.println("Blahhh");
+    //System.out.println(currentToken.spell(currentToken.kind));
     match(Token.LCURLY);
-    parseStmtList();
+    //System.out.println("Blob");
+    while(currentToken.kind != Token.RCURLY) {
+        parseExpr();
+        if(currentToken.kind == Token.SEMICOLON){
+            match(Token.SEMICOLON);
+        }
+    }
+    
     match(Token.RCURLY);
   }
 
  // Here, a new nontermial has been introduced to define { stmt } *
   void parseStmtList() throws SyntaxError {
 
-    while (currentToken.kind != Token.RCURLY) 
+    while (currentToken.kind != Token.RCURLY)
       parseStmt();
   }
 
   void parseStmt() throws SyntaxError {
 
     switch (currentToken.kind) {
-
+    
     case Token.CONTINUE:
-      parseContinueStmt();
-      break;
+        parseContinueStmt();
+        break;
 
     default:
-      parseExprStmt();
-      break;
+        //System.out.println("Im here");
+        parseExprStmt();
+        break;
 
     }
   }
 
   void parseContinueStmt() throws SyntaxError {
-
+    
     match(Token.CONTINUE);
     match(Token.SEMICOLON);
 
@@ -165,7 +267,7 @@ public class Recogniser {
 
 // ======================= IDENTIFIERS ======================
 
- // Call parseIdent rather than match(Token.ID). 
+ // Call parseIdent rather than match(Token.ID).
  // In Assignment 3, an Identifier node will be constructed in here.
 
 
@@ -173,13 +275,13 @@ public class Recogniser {
 
     if (currentToken.kind == Token.ID) {
       currentToken = scanner.getToken();
-    } else 
+    } else
       syntacticError("identifier expected here", "");
   }
 
 // ======================= OPERATORS ======================
 
- // Call acceptOperator rather than accept(). 
+ // Call acceptOperator rather than accept().
  // In Assignment 3, an Operator Node will be constructed in here.
 
   void acceptOperator() throws SyntaxError {
@@ -196,9 +298,48 @@ public class Recogniser {
 
 
   void parseAssignExpr() throws SyntaxError {
+    parseCondOrExpr();
+    while(currentToken.kind == Token.EQ){
+        match(Token.EQ);
+        parseCondOrExpr();
+    }
+    // this is the original function call parseAdditiveExpr();
 
+  }
+
+  //TO DO
+  void parseCondOrExpr() throws SyntaxError {
+    parseCondAndExpr();
+    while(currentToken.kind == Token.OROR) {
+        acceptOperator();
+        parseCondAndExpr();
+    }
+  }
+  
+    //TO DO
+  void parseCondAndExpr() throws SyntaxError {
+    parseEqualityExpr();
+    while(currentToken.kind == Token.ANDAND){
+        acceptOperator();
+        parseEqualityExpr();
+    }
+  }
+    //TO DO
+  void parseEqualityExpr() throws SyntaxError {
+    parseRelExpr();
+    while(currentToken.kind == Token.EQEQ || currentToken.kind == Token.NOTEQ) {
+        acceptOperator();
+        parseRelExpr();
+    }
+  }
+    //TO DO
+  void parseRelExpr() throws SyntaxError {
     parseAdditiveExpr();
-
+    while(currentToken.kind == Token.LT || currentToken.kind == Token.LTEQ
+           || currentToken.kind == Token.GT || currentToken.kind == Token.GTEQ) {
+        acceptOperator();
+        parseAdditiveExpr();
+    }
   }
 
   void parseAdditiveExpr() throws SyntaxError {
@@ -242,6 +383,13 @@ public class Recogniser {
 
       case Token.ID:
         parseIdent();
+        if (currentToken.kind == Token.LBRACKET) {
+					match(Token.LBRACKET);
+					parseExpr();
+					match(Token.RBRACKET);
+				} else if (currentToken.kind == Token.LPAREN){
+					parseFunctionCall();
+				}
         break;
 
       case Token.LPAREN:
@@ -257,21 +405,26 @@ public class Recogniser {
         break;
 
       default:
-        syntacticError("illegal parimary expression", currentToken.spelling);
-       
+        parseType();
+        //syntacticError("illegal parimary expression", currentToken.spelling);
+        break;
     }
   }
 
 // ========================== LITERALS ========================
 
-  // Call these methods rather than accept().  In Assignment 3, 
-  // literal AST nodes will be constructed inside these methods. 
+  // Call these methods rather than accept().  In Assignment 3,
+  // literal AST nodes will be constructed inside these methods.
 
+  void parseStringLiteral() throws SyntaxError {
+        
+  }
+  
   void parseIntLiteral() throws SyntaxError {
 
     if (currentToken.kind == Token.INTLITERAL) {
       currentToken = scanner.getToken();
-    } else 
+    } else
       syntacticError("integer literal expected here", "");
   }
 
@@ -279,7 +432,7 @@ public class Recogniser {
 
     if (currentToken.kind == Token.FLOATLITERAL) {
       currentToken = scanner.getToken();
-    } else 
+    } else
       syntacticError("float literal expected here", "");
   }
 
@@ -287,7 +440,7 @@ public class Recogniser {
 
     if (currentToken.kind == Token.BOOLEANLITERAL) {
       currentToken = scanner.getToken();
-    } else 
+    } else
       syntacticError("boolean literal expected here", "");
   }
 

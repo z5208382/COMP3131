@@ -151,13 +151,44 @@ public class Recogniser {
   }
     
     public void parseVarDeclaration() throws SyntaxError {
-        parseType();
-        parseDeclarationList();
+        switch(currentToken.kind) {
+            case Token.EQ:
+                match(Token.EQ);
+                parseNewAssignedValue();
+                break;
+            case Token.COMMA:
+                match(Token.COMMA);
+                parseDeclarationList();
+                break;
+            case Token.LBRACKET:
+                match(Token.LBRACKET);
+                if(currentToken.kind == Token.INTLITERAL) match(Token.INTLITERAL);
+                match(Token.RBRACKET);
+                break;
+            default:
+                break;
+        }
         match(Token.SEMICOLON);
     }
     
     public void parseDeclarationList() throws SyntaxError {
-        
+            
+    }
+    
+    void parseNewAssignedValue() throws SyntaxError {
+        switch(currentToken.kind) {
+            case Token.LCURLY:
+                match(Token.LCURLY);
+                parseExpr();
+                while(currentToken.kind == Token.COMMA) {
+                    match(Token.COMMA);
+                    parseExpr();
+                }
+                match(Token.RCURLY);
+                break;
+            default:
+                parseExpr();
+        }
     }
 
     public void parseParraList() throws SyntaxError {

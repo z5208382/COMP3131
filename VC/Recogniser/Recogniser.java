@@ -171,8 +171,38 @@ public class Recogniser {
         match(Token.SEMICOLON);
     }
     
+    
+
     public void parseDeclarationList() throws SyntaxError {
-            
+            parseDeclaration();
+            while(currentToken.kind == Token.COMMA) {
+                match(Token.COMMA);
+                parseDeclaration();
+            }
+    }
+    
+    void parseDeclaration() throws SyntaxError {
+        parseNewAssignedValue();
+        if(currentToken.kind == Token.EQ){
+            match(Token.EQ);
+            parseNewArray();
+        }
+    }
+    
+    void parseNewArray() throws SyntaxError {
+        switch(currentToken.kind) {
+            case Token.LBRACKET:
+                match(Token.LBRACKET);
+                parseExpr();
+                while(currentToken.kind == Token.COMMA) {
+                    match(Token.COMMA);
+                    parseExpr();
+                }
+                match(Token.RBRACKET);
+                break;
+            default:
+                parseExpr();
+        }
     }
     
     void parseNewAssignedValue() throws SyntaxError {
@@ -257,12 +287,13 @@ public class Recogniser {
     match(Token.LCURLY);
     //System.out.println("Blob");
     while(currentToken.kind != Token.RCURLY) {
-        parseExpr();
-        if(currentToken.kind == Token.SEMICOLON){
-            match(Token.SEMICOLON);
-        }
         if(isStmtDeclaration()) {
             parseStmt();
+        } else {
+            parseExpr();
+        }
+        if(currentToken.kind == Token.SEMICOLON){
+            match(Token.SEMICOLON);
         }
     }
     
@@ -288,18 +319,23 @@ public class Recogniser {
         parseIfStmt();
         break;
     case Token.FOR:
+        match(Token.FOR);
         parseForStmt();
         break;
     case Token.WHILE:
+        match(Token.WHILE);
         parseWhileStmt();
         break;
     case Token.BREAK:
+        match(Token.BREAK);
         parseBreakStmt();
         break;
     case Token.RETURN:
+        match(Token.RETURN);
         parseReturnStmt();
         break;
     case Token.CONTINUE:
+        match(Token.CONTINUE);
         parseContinueStmt();
         break;
     
@@ -323,26 +359,39 @@ public class Recogniser {
   }
 
   void parseForStmt() throws SyntaxError {
-
+    match(Token.LPAREN);
+    parseExpr();
+    match(Token.RPAREN);
+    parseStmt();
   }
   
   void parseWhileStmt() throws SyntaxError {
-
+    match(Token.LPAREN);
+    while(currentToken.kind != Token.RPAREN) {
+        if(currentToken.kind == Token.SEMICOLON) {
+            match(Token.SEMICOLON);
+        } else {
+            parseExpr();
+        }
+    }
+    match(Token.RPAREN);
+    parseStmt();
   }
 
   void parseBreakStmt() throws SyntaxError {
-
+    match(Token.SEMICOLON);
   }
 
   void parseReturnStmt() throws SyntaxError {
+    if(currentToken.kind == Token.SEMICOLON) {
+        match(Token.SEMICOLON);
+    }
+    parseExpr();
 
   }
 
   void parseContinueStmt() throws SyntaxError {
-    
-    match(Token.CONTINUE);
     match(Token.SEMICOLON);
-
   }
 
   void parseExprStmt() throws SyntaxError {

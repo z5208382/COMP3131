@@ -1,0 +1,14 @@
+Program
+  DeclList
+    FuncDecl
+      int
+      f
+      EmptyParaList
+      EmptyCompStmt
+    DeclList
+      FuncDecl
+        int
+        g
+        EmptyParaList
+        EmptyCompStmt
+      EmptyDeclList

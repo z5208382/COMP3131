@@ -194,28 +194,29 @@ public class Parser {
  
     SourcePosition funcPos = new SourcePosition();
     start(funcPos);
-
+    Type tAST = parseType();
+    Ident iAST = parseIdent();
     if(currentToken.kind == Token.LPAREN){
-        Type tAST = parseType();
-        Ident iAST = parseIdent();
         match(Token.LPAREN);
         List fplAST = parseParaList();
         Stmt cAST = parseCompoundStmt();
         finish(funcPos);
         fAST = new FuncDecl(tAST, iAST, fplAST, cAST, funcPos);
     } else {
-        fAST = parseVarDeclaration("global");
+        fAST = parseVarDeclaration(tAST, iAST, "global");
 
     }
     return fAST;
   }
 
-  Decl parseVarDeclaration(String declrType) throws SyntaxError {
+  Decl parseVarDeclaration(Type tAST, Ident iAST, String declrType) throws SyntaxError {
     Decl var = null;
     SourcePosition pos = new SourcePosition();
     start(pos);
+    /*
     Type tAST = parseType();
     Ident iAST = parseIdent();
+    */
     Expr assign = new EmptyExpr(dummyPos);
     if(currentToken.kind == Token.EQ) {
         match(Token.EQ);
@@ -303,7 +304,9 @@ public class Parser {
 
     if (currentToken.kind != Token.RCURLY) {
       if(isTypeDeclaration()){
-         localDeclVar = parseVarDeclaration("local");
+          Type tAST = parseType();
+          Ident iAST = parseIdent();
+         localDeclVar = parseVarDeclaration(tAST, iAST, "local");
          if(currentToken.kind != Token.RCURLY) {
             slAST = parseStmtList();
             finish(stmtPos);

@@ -195,27 +195,40 @@ public class Parser {
     SourcePosition funcPos = new SourcePosition();
     start(funcPos);
 
-    Type tAST = parseType();
-    Ident iAST = parseIdent();
     if(currentToken.kind == Token.LPAREN){
+        Type tAST = parseType();
+        Ident iAST = parseIdent();
         match(Token.LPAREN);
         List fplAST = parseParaList();
         Stmt cAST = parseCompoundStmt();
         finish(funcPos);
         fAST = new FuncDecl(tAST, iAST, fplAST, cAST, funcPos);
     } else {
+        fAST = parseVarDeclaration("global");
+  
+            
+
         /*
-        Expr lclVarDecl = parseVarDeclaration();
-        finish(funcPos);
-        fAST = new LocalVarDecl(tAST, iAST, lclVarDecl, funcPos);
+
+        if (currentToken.kind != Token.RCURLY) {
+          if(isTypeDeclaration()){
+             localDeclVar = parseVarDeclaration("local");
+             if(currentToken.kind != Token.RCURLY) {
+                slAST = parseStmtList();
+                finish(stmtPos);
+                slAST = new DeclList (localDeclVar, slAST, stmtPos);
+             } else {
+                   finish(stmtPos);
+                    slAST = new DeclList(localDeclVar, new EmptyDeclList(dummyPos), stmtPos);
+               }
+
         */
-        //this is where global variables are meant to be made :OL
-        System.out.println("Learn how to do this!!!");
+
     }
     return fAST;
   }
 
-  Decl parseVarDeclaration() throws SyntaxError {
+  Decl parseVarDeclaration(String declrType) throws SyntaxError {
     Decl var = null;
     SourcePosition pos = new SourcePosition();
     start(pos);
@@ -226,7 +239,11 @@ public class Parser {
         match(Token.EQ);
         assign = parseExpr();
     }
-    var = new LocalVarDecl(tAST, iAST, assign, pos);
+    if(declrType == "local"){
+        var = new LocalVarDecl(tAST, iAST, assign, pos);
+    } else if(declrType == "global") {
+        var = new GlobalVarDecl(tAST, iAST, assign, pos);
+    }
 
     return var;
   }
@@ -301,7 +318,7 @@ public class Parser {
 
     if (currentToken.kind != Token.RCURLY) {
       if(isTypeDeclaration()){
-         localDeclVar = parseVarDeclaration();
+         localDeclVar = parseVarDeclaration("local");
          if(currentToken.kind != Token.RCURLY) {
             slAST = parseStmtList();
             finish(stmtPos);

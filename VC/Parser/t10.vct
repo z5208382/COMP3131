@@ -7,21 +7,12 @@ Program
       CompoundStmt
         EmptyDeclList
         StmtList
-          IfStmt
-            BinaryExpr
+          ExprStmt
+            AssignExpr
               VarExpr
                 SimpleVar
                   i
-              <=
               IntExpr
-                10
-            ExprStmt
-              AssignExpr
-                VarExpr
-                  SimpleVar
-                    j
-                IntExpr
-                  20
-            EmptyStmt
+                1
           EmptyStmtList
     EmptyDeclList

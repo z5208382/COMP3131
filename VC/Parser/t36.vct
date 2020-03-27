@@ -5,13 +5,10 @@ Program
       i
     DeclList
       GloablVarDecl
-        float
-        f
-        =
-        FloatExpr
-          1.0
+        int
+        jj
       DeclList
         GloablVarDecl
-          boolean
-          b
+          int
+          kkk
         EmptyDeclList

@@ -182,7 +182,7 @@ public class Parser {
         currASTHead = (DeclList) currASTHead.DL;
     }
     
-    if(currentToken.kind != Token.EOF) {
+    if(currentToken.kind != Token.EOF || currentToken.kind != Token.RPAREN) {
         currASTHead.DL = parseFuncDeclList();
     }
     return dlAST;
@@ -316,7 +316,7 @@ public class Parser {
                 slAST = new DeclList(localDeclVar, new EmptyDeclList(dummyPos), stmtPos);
            }
       } else {
-            sAST = parseStmt();
+            sAST = parseExprStmt();
           {
             if (currentToken.kind != Token.RCURLY) {
               slAST = parseStmtList();
@@ -337,19 +337,156 @@ public class Parser {
 
   Stmt parseStmt() throws SyntaxError {
     Stmt sAST = null;
-
-    sAST = parseExprStmt();
+    
+    if (currentToken.kind == Token.LCURLY) {
+        sAST = parseCompoundStmt();
+    } else if (currentToken.kind == Token.IF) {
+        sAST = parseIfStmt();
+    } else if (currentToken.kind == Token.FOR) {
+        sAST = parseForStmt();
+    } else if (currentToken.kind == Token.WHILE) {
+        sAST = parseWhileStmt();
+    } else if (currentToken.kind == Token.CONTINUE) {
+        sAST = parseContinueStmt();
+    } else if (currentToken.kind == Token.BREAK) {
+        sAST = parseBreakStmt();
+    } else if (currentToken.kind == Token.RETURN) {
+        sAST = parseReturnStmt();
+    } else {
+        sAST = parseExprStmt();
+    }
 
     return sAST;
   }
+  
+  Stmt parseIfStmt() throws SyntaxError {
+    match(Token.IF);
+    match(Token.LPAREN);
+    
+    Stmt ifStmt = null;
+    Expr expr = null;
+    Stmt compStmt = null;
+    Stmt elseCompStmt = null;
+    SourcePosition pos = new SourcePosition();
+    start(pos);
 
+    expr = parseExpr();
+    match(Token.RPAREN);
+    compStmt = parseStmt();
+    if(currentToken.kind == Token.ELSE) {
+        match(Token.ELSE);
+        elseCompStmt = parseStmt();
+        finish(pos);
+        ifStmt = new IfStmt(expr, compStmt, elseCompStmt, pos);
+    } else {
+        finish(pos);
+        ifStmt = new IfStmt(expr, compStmt, pos);
+    }
+
+    return ifStmt;
+  }
+
+  Stmt parseForStmt() throws SyntaxError {
+    match(Token.FOR);
+    match(Token.LPAREN);
+    
+    Stmt forStmt = null;
+    Expr one = null;
+    Expr two = null;
+    Expr three = null;
+    Stmt compStmt = null;
+    SourcePosition pos = new SourcePosition();
+    start(pos);
+
+    while(currentToken.kind != Token.RPAREN) {
+        one = parseExpr();
+        if(currentToken.kind == Token.SEMICOLON) {
+            match(Token.SEMICOLON);
+        }
+        two = parseExpr();
+        if(currentToken.kind == Token.SEMICOLON) {
+            match(Token.SEMICOLON);
+        }
+        three = parseExpr();
+        if(currentToken.kind == Token.SEMICOLON) {
+            match(Token.SEMICOLON);
+        }
+    }
+    match(Token.RPAREN);
+    compStmt = parseStmt();;
+    finish(pos);
+    forStmt = new ForStmt(one, two, three, compStmt, pos);
+    return forStmt;
+  }
+  
+  Stmt parseWhileStmt() throws SyntaxError {
+    match(Token.WHILE);
+    match(Token.LPAREN);
+
+    Stmt whileStmt = null;
+    Expr whileExpr = null;
+    Stmt body = null;
+    SourcePosition pos = new SourcePosition();
+    start(pos);
+
+    whileExpr = parseExpr();
+    match(Token.RPAREN);
+
+    body = parseStmt();
+    finish(pos);
+    whileStmt = new WhileStmt(whileExpr, body, pos);
+
+    return whileStmt;
+  }
+
+  Stmt parseBreakStmt() throws SyntaxError {
+    SourcePosition pos = new SourcePosition();
+    start(pos);
+
+    match(Token.BREAK);
+    match(Token.SEMICOLON);
+    
+    finish(pos);
+
+    
+    return new BreakStmt(pos);
+  }
+
+  Stmt parseReturnStmt() throws SyntaxError {
+      SourcePosition pos = new SourcePosition();
+  		Expr retExpr = new EmptyExpr(dummyPos);
+
+  		start(pos);
+  		match(Token.RETURN);
+  		if (currentToken.kind != Token.SEMICOLON) {
+  			retExpr = parseExpr();
+  		}
+  		match(Token.SEMICOLON);
+  		finish(pos);
+  		
+  		return new ReturnStmt(retExpr, pos);
+  }
+
+  Stmt parseContinueStmt() throws SyntaxError {
+      SourcePosition pos = new SourcePosition();
+  		
+      start(pos);
+      match(Token.CONTINUE);
+      match(Token.SEMICOLON);
+      finish(pos);
+  		
+      return new ContinueStmt(pos);
+  }
+  
   Stmt parseExprStmt() throws SyntaxError {
     Stmt sAST = null;
 
     SourcePosition stmtPos = new SourcePosition();
     start(stmtPos);
-
-    if (currentToken.kind == Token.ID
+    if(isStmtDeclaration()) {
+        sAST = parseStmt();
+    }
+     else if (currentToken.kind == Token.ID
         || currentToken.kind == Token.INTLITERAL
         || currentToken.kind == Token.LPAREN) {
         Expr eAST = parseExpr();

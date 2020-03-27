@@ -10,8 +10,5 @@ Program
           LocalVarDecl
             int
             i
-          StmtList
-            ExprStmt
-              EmptyExpr
-            EmptyStmtList
+          EmptyDeclList
     EmptyDeclList

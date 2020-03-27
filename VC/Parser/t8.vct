@@ -10,25 +10,16 @@ Program
           LocalVarDecl
             int
             i
-          StmtList
-            ExprStmt
-              EmptyExpr
+          DeclList
+            LocalVarDecl
+              float
+              f
             DeclList
               LocalVarDecl
-                float
-                f
-              StmtList
-                ExprStmt
-                  EmptyExpr
-                DeclList
-                  LocalVarDecl
-                    boolean
-                    b
-                    =
-                    BooleanExpr
-                      true
-                  StmtList
-                    ExprStmt
-                      EmptyExpr
-                    EmptyStmtList
+                boolean
+                b
+                =
+                BooleanExpr
+                  true
+              EmptyDeclList
     EmptyDeclList

@@ -205,24 +205,6 @@ public class Parser {
         fAST = new FuncDecl(tAST, iAST, fplAST, cAST, funcPos);
     } else {
         fAST = parseVarDeclaration("global");
-  
-            
-
-        /*
-
-        if (currentToken.kind != Token.RCURLY) {
-          if(isTypeDeclaration()){
-             localDeclVar = parseVarDeclaration("local");
-             if(currentToken.kind != Token.RCURLY) {
-                slAST = parseStmtList();
-                finish(stmtPos);
-                slAST = new DeclList (localDeclVar, slAST, stmtPos);
-             } else {
-                   finish(stmtPos);
-                    slAST = new DeclList(localDeclVar, new EmptyDeclList(dummyPos), stmtPos);
-               }
-
-        */
 
     }
     return fAST;
@@ -238,6 +220,8 @@ public class Parser {
     if(currentToken.kind == Token.EQ) {
         match(Token.EQ);
         assign = parseExpr();
+    } else if(currentToken.kind == Token.SEMICOLON){
+        match(Token.SEMICOLON);
     }
     if(declrType == "local"){
         var = new LocalVarDecl(tAST, iAST, assign, pos);

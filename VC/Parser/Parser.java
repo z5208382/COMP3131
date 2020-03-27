@@ -1,3 +1,4 @@
+
 /*
  * Parser.java
  *
@@ -18,8 +19,6 @@
  * USEFUL TO DEBUG YOUR IMPLEMENTATION.
  *
  * --- 5-March-2020 ---
-
-
 program       -> func-decl
 func-decl     -> type identifier "(" ")" compound-stmt
 type          -> void
@@ -38,7 +37,6 @@ multiplicative-expr -> unary-expr
 	            |  multiplicative-expr "/" unary-expr
 unary-expr          -> "-" unary-expr
 		    |  primary-expr
-
 primary-expr        -> identifier
  		    |  INTLITERAL
 		    | "(" expr ")"
@@ -205,12 +203,32 @@ public class Parser {
         Stmt cAST = parseCompoundStmt();
         finish(funcPos);
         fAST = new FuncDecl(tAST, iAST, fplAST, cAST, funcPos);
-    } /*else {
+    } else {
+        /*
         Expr lclVarDecl = parseVarDeclaration();
         finish(funcPos);
         fAST = new LocalVarDecl(tAST, iAST, lclVarDecl, funcPos);
-    } */
+        */
+        //this is where global variables are meant to be made :OL
+        System.out.println("Learn how to do this!!!");
+    }
     return fAST;
+  }
+
+  Decl parseVarDeclaration() throws SyntaxError {
+    Decl var = null;
+    SourcePosition pos = new SourcePosition();
+    start(pos);
+    Type tAST = parseType();
+    Ident iAST = parseIdent();
+    Expr assign = new EmptyExpr(dummyPos);
+    if(currentToken.kind == Token.EQ) {
+        match(Token.EQ);
+        assign = parseExpr();
+    }
+    var = new LocalVarDecl(tAST, iAST, assign, pos);
+
+    return var;
   }
 //  ======================== TYPES ==========================
 
@@ -275,22 +293,36 @@ public class Parser {
 
   List parseStmtList() throws SyntaxError {
     List slAST = null;
+    Stmt sAST = null;
+    Decl localDeclVar = null;
 
     SourcePosition stmtPos = new SourcePosition();
     start(stmtPos);
 
     if (currentToken.kind != Token.RCURLY) {
-      Stmt sAST = parseStmt();
-      {
-        if (currentToken.kind != Token.RCURLY) {
-          slAST = parseStmtList();
-          finish(stmtPos);
-          slAST = new StmtList(sAST, slAST, stmtPos);
-        } else {
-          finish(stmtPos);
-          slAST = new StmtList(sAST, new EmptyStmtList(dummyPos), stmtPos);
+      if(isTypeDeclaration()){
+         localDeclVar = parseVarDeclaration();
+         if(currentToken.kind != Token.RCURLY) {
+            slAST = parseStmtList();
+            finish(stmtPos);
+            slAST = new DeclList (localDeclVar, slAST, stmtPos);
+         } else {
+               finish(stmtPos);
+                slAST = new DeclList(localDeclVar, new EmptyDeclList(dummyPos), stmtPos);
+           }
+      } else {
+            sAST = parseStmt();
+          {
+            if (currentToken.kind != Token.RCURLY) {
+              slAST = parseStmtList();
+              finish(stmtPos);
+              slAST = new StmtList(sAST, slAST, stmtPos);
+            } else {
+              finish(stmtPos);
+              slAST = new StmtList(sAST, new EmptyStmtList(dummyPos), stmtPos);
+            }
+          }
         }
-      }
     }
     else
       slAST = new EmptyStmtList(dummyPos);

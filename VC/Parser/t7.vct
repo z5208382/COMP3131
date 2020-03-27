@@ -1,0 +1,17 @@
+Program
+  DeclList
+    FuncDecl
+      void
+      main
+      EmptyParaList
+      CompoundStmt
+        EmptyDeclList
+        DeclList
+          LocalVarDecl
+            int
+            i
+          StmtList
+            ExprStmt
+              EmptyExpr
+            EmptyStmtList
+    EmptyDeclList

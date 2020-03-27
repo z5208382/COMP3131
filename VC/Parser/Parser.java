@@ -220,7 +220,8 @@ public class Parser {
     if(currentToken.kind == Token.EQ) {
         match(Token.EQ);
         assign = parseExpr();
-    } else if(currentToken.kind == Token.SEMICOLON){
+    }
+    if(currentToken.kind == Token.SEMICOLON){
         match(Token.SEMICOLON);
     }
     if(declrType == "local"){
